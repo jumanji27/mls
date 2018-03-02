@@ -57,7 +57,6 @@ class BaseServer:
     def _check_memory_consumption(self, data):
         if self._total_requests_memory_consumption > self._MEMORY_LIMIT:
             gc.collect()
-            print('CLEAN!')
 
             self._total_requests_memory_consumption = 0
 
