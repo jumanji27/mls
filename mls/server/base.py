@@ -3,6 +3,8 @@
 
 import logging
 import traceback
+import gc
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 # from jsonrpc import JSONRPCResponseManager, dispatcher
@@ -40,6 +42,9 @@ class BaseServer:
         else:
             self._ml = ml
 
+        self._total_requests_memory_consumption = 0
+        self._MEMORY_LIMIT = 50000000
+
         self.set_dispatcher({'ready': self._ready})
 
     def _init_ml(self):
@@ -48,6 +53,15 @@ class BaseServer:
     @serialize_data
     def _ready(self, _):
         return self._ml is not None
+
+    def _check_memory_consumption(self, data):
+        if self._total_requests_memory_consumption > self._MEMORY_LIMIT:
+            gc.collect()
+            print('CLEAN!')
+
+            self._total_requests_memory_consumption = 0
+
+        self._total_requests_memory_consumption += sys.getsizeof(data)
 
     def set_dispatcher(self, route_table, clear=False):
         """
@@ -74,6 +88,7 @@ class BaseServer:
 
         @Request.application
         def _application(request):
+            self._check_memory_consumption(request.data)
             # dispatcher is dictionary {<method_name>: callable}
             method = request.headers['method']
             headers = {'error': ''}
