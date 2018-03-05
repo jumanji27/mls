@@ -24,7 +24,9 @@ class BaseServer:
     :param address: address of a server, keep default value if you don't understand what it's for
     """
 
-    def __init__(self, port, ml, address='0.0.0.0', ml_config=None, log=True):
+    def __init__(self, port, ml, address='0.0.0.0', ml_config=None, log=True, mem_limit=50000000):
+        if not isinstance(mem_limit, int):
+            raise ValueError('mem_limit must be int')
         if not log:
             logging.getLogger('werkzeug').setLevel(logging.ERROR)
             for name, _ in logging.Logger.manager.loggerDict.items():
@@ -43,7 +45,7 @@ class BaseServer:
             self._ml = ml
 
         self._total_requests_memory_consumption = 0
-        self._MEMORY_LIMIT = 50000000
+        self._MEMORY_LIMIT = mem_limit
 
         self.set_dispatcher({'ready': self._ready})
 
