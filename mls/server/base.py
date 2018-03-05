@@ -55,6 +55,14 @@ class BaseServer:
         return self._ml is not None
 
     def _check_memory_consumption(self, data):
+        """
+        We got a problem with memory consumption in Werkzeug in large requests (5-10+MB)
+        As it appears Werkzeug scheduler hardly ever clear app memory
+        Here we do it for him
+
+        :param data: request.data
+        """
+
         if self._total_requests_memory_consumption > self._MEMORY_LIMIT:
             gc.collect()
 
